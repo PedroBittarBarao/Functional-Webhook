@@ -1,14 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module RequestHandler (app) where
 
-import Network.Wai (Application, Request, Response, responseLBS, requestMethod, strictRequestBody)
-import Network.Wai.Handler.Warp (run)
-import Network.HTTP.Types (status200, status400)
-import Data.Aeson (decode, Value)
+import Network.Wai (Application, Request, Response, responseLBS, strictRequestBody)
+import Network.HTTP.Types (status200)
+import Data.Aeson (decode, encode, object, (.=))
 import qualified Data.ByteString.Lazy.Char8 as BL
+import Control.Exception (try, SomeException)
+import Data.Text (Text)
 
-import WebhookEvent (WebhookEvent)
-import Data.Aeson (decode)
+import WebhookEvent (WebhookEvent(..))
+import ConfirmTransaction (confirmTransaction)
 
 app :: Application
 app req respond = do
@@ -20,10 +21,22 @@ app req respond = do
     Just event -> do
       putStrLn "Parsed event:"
       print event
-      respond $ responseLBS status200 [("Content-Type", "text/plain")] "Webhook received"
+      let txId = transaction_id event
+      
+      -- Tenta enviar a confirmação e captura exceções para não quebrar o servidor
+      result <- try (confirmTransaction txId) :: IO (Either SomeException ())
+      case result of
+        Left err -> putStrLn $ "Erro ao confirmar transação: " ++ show err
+        Right _  -> putStrLn "Confirmação enviada com sucesso"
+
+      respond $ responseLBS
+        status200
+        [("Content-Type", "application/json")]
+        (encode $ object ["transaction_id" .= txId])
+
     Nothing -> do
       putStrLn "Failed to parse WebhookEvent"
-      respond $ responseLBS status400 [("Content-Type", "text/plain")] "Invalid JSON"
-
-
-
+      respond $ responseLBS
+        status200
+        [("Content-Type", "application/json")]
+        (encode $ object ["error" .= ("invalid payload" :: Text)])

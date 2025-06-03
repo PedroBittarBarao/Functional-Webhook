@@ -61,6 +61,7 @@ library
     hs-source-dirs:   lib
     exposed-modules:  RequestHandler
                     , WebhookEvent
+                    , ConfirmTransaction
     build-depends:    base >= 4.7 && < 5
                     , warp
                     , wai
@@ -68,6 +69,8 @@ library
                     , text
                     , bytestring
                     , http-types
+                    , http-client
+                    , http-client-tls
 
     ghc-options: -O2 
 
