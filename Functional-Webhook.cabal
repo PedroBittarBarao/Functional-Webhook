@@ -71,6 +71,7 @@ library
                     , http-types
                     , http-client
                     , http-client-tls
+                    , containers
 
     ghc-options: -O2 
 
@@ -96,6 +97,7 @@ executable Functional-Webhook
                     , aeson
                     , text
                     , bytestring
+                    , containers
                       
 
     -- Directories containing source files.
