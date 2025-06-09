@@ -63,10 +63,12 @@ library
                     , WebhookEvent
                     , ConfirmTransaction
                     , CancelTransaction
+                    , DB
     build-depends:    base >= 4.7 && < 5
                     , warp
                     , wai
                     , aeson
+                    , sqlite-simple >=0.4
                     , text
                     , bytestring
                     , http-types
@@ -94,6 +96,7 @@ executable Functional-Webhook
     build-depends:
                     base ^>=4.18.3.0
                     , Functional-Webhook
+                    , sqlite-simple
                     , warp
                     , wai
                     , aeson

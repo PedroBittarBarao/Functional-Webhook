@@ -12,7 +12,9 @@ import qualified Data.Text.Encoding as TE
 import Data.Text (Text)
 import Data.IORef
 import qualified Data.Set as Set
+import Database.SQLite.Simple (Connection)
 
+import DB (initDB, hasTransaction, saveTransaction)
 import WebhookEvent (WebhookEvent(..))
 import ConfirmTransaction (confirmTransaction)
 import CancelTransaction (cancelTransaction)
@@ -20,8 +22,8 @@ import CancelTransaction (cancelTransaction)
 expectedToken :: Text
 expectedToken = "meu-token-secreto"
 
-app :: IORef (Set.Set Text) -> Application
-app processedRef req respond = do
+app :: Connection -> Application
+app conn req respond = do
   let path = rawPathInfo req
   if path /= "/webhook"
     then respond $ responseLBS status400 [("Content-Type", "application/json")] "{\"error\": \"Not found\"}"
@@ -71,14 +73,16 @@ app processedRef req respond = do
                   respond $ responseLBS status200 [("Content-Type", "application/json")]
                     (encode $ object ["transaction_id" .= transaction_id ev])
                 else do
-                  processed <- readIORef processedRef
-                  if Set.member (transaction_id ev) processed
+                  alreadyProcessed <- hasTransaction conn (transaction_id ev)
+                  if alreadyProcessed
                     then do
                       putStrLn "Duplicate transaction"
                       respond $ responseLBS status400 [("Content-Type", "application/json")]
                         "{\"error\": \"Duplicate transaction\"}"
                     else do
-                      atomicModifyIORef' processedRef $ \s -> (Set.insert (transaction_id ev) s, ())
+                      saveTransaction conn (transaction_id ev)
+                      -- Continue processing
+
 
                       if amount ev == 0
                         then do

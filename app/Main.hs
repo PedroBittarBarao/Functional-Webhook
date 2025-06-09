@@ -1,14 +1,15 @@
-import Data.IORef
-import qualified Data.Set as Set
-import Data.Text (Text)
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main where
+
 import Network.Wai.Handler.Warp (run)
-
-
-import WebhookEvent
+import Database.SQLite.Simple (open)
+import DB (initDB)
 import RequestHandler (app)
 
 main :: IO ()
 main = do
+  conn <- open "transactions.db"
+  initDB conn
   putStrLn "Listening on port 5001..."
-  processedRef <- newIORef Set.empty
-  run 5000 (app processedRef)
+  run 5000 (app conn)
