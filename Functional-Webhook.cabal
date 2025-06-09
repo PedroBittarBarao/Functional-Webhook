@@ -73,6 +73,7 @@ library
                     , http-client
                     , http-client-tls
                     , containers
+                    , unordered-containers
 
     ghc-options: -O2 
 
