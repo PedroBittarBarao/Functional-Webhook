@@ -17,7 +17,6 @@ import WebhookEvent (WebhookEvent(..))
 import ConfirmTransaction (confirmTransaction)
 import CancelTransaction (cancelTransaction)
 
--- Token esperado (substitua pelo seu token real)
 expectedToken :: Text
 expectedToken = "meu-token-secreto"
 
@@ -32,21 +31,21 @@ app processedRef req respond = do
       BL.putStrLn body
 
       case decode body :: Maybe WebhookEvent of
-        Nothing -> do -- line 33
-          putStrLn "❌ Failed to parse WebhookEvent"
+        Nothing -> do
+          putStrLn "Failed to parse WebhookEvent"
           case decode body :: Maybe (Object) of
             Just o -> case KM.lookup "transaction_id" o of
               Just (Aeson.String txId) -> do
-                putStrLn $ "⚠️ Invalid event payload, but found transaction_id: " ++ show txId
+                putStrLn $ "Invalid event payload, but found transaction_id: " ++ show txId
                 cancelTransaction txId
                 respond $ responseLBS status400 [("Content-Type", "application/json")]
                   (encode $ object ["error" .= ("Invalid JSON, transaction canceled" :: Text), "transaction_id" .= txId])
               _ -> do
-                putStrLn "⚠️ Invalid JSON and no transaction_id found"
+                putStrLn "Invalid JSON and no transaction_id found"
                 respond $ responseLBS status400 [("Content-Type", "application/json")]
                   "{\"error\": \"Invalid JSON payload\"}"
             Nothing -> do
-              putStrLn "⚠️ Completely invalid JSON"
+              putStrLn "Completely invalid JSON"
               respond $ responseLBS status400 [("Content-Type", "application/json")]
                 "{\"error\": \"Invalid JSON payload\"}"
           

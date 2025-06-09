@@ -21,4 +21,4 @@ cancelTransaction txId = do
         , requestHeaders = [("Content-Type", "application/json")]
         }
   response <- httpLbs request manager
-  putStrLn $ "❌ Enviada cancelamento: " ++ show (responseStatus response)
+  putStrLn $ "Sent cancelation request: " ++ show (responseStatus response)

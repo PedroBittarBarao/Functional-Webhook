@@ -21,4 +21,4 @@ confirmTransaction txId = do
         , requestHeaders = [("Content-Type", "application/json")]
         }
   response <- httpLbs request manager
-  putStrLn $ "Enviada confirmação: " ++ show (responseStatus response)
+  putStrLn $ "Sent confirmation request: " ++ show (responseStatus response)
